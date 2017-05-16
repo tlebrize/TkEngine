@@ -37,6 +37,8 @@ class Viewer(pyglet.window.Window):
 		self.set_caption(filename)
 		self.current.x = self.position[0]
 		self.current.y = self.position[1]
+		self.current.anchor_x = self.current.width // 2
+		self.current.anchor_y = self.current.height // 2
 		self.current.scale = self.scale
 
 	def on_draw(self):
@@ -52,9 +54,6 @@ class Viewer(pyglet.window.Window):
 		elif symbol == key.TAB:
 			self.current_index = (self.current_index + 1) % len(self.files)
 			self.load()
-		elif symbol == key.ESCAPE:
-			self.clear()
-			exit()
 		elif symbol == key.Q:
 			self.current.scale += 0.1
 		elif symbol == key.W:
@@ -67,10 +66,19 @@ class Viewer(pyglet.window.Window):
 			self.current.x += 25
 		elif symbol == key.LEFT:
 			self.current.x -= 25
+		elif symbol == key.A:
+			self.current.rotation += 5
+		elif symbol == key.S:
+			self.current.rotation -= 5
 		elif symbol == key.SPACE:
 			self.placed.append(self.current)
 			self.current = None
 			self.load()
+		elif symbol == key.RETURN:
+			pyglet.image.get_buffer_manager().get_color_buffer().save('output.png')
+		elif symbol == key.ESCAPE:
+			self.clear()
+			exit()
 
 
 if __name__ == '__main__':
