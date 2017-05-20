@@ -1,13 +1,12 @@
+from . import scene
 import pyglet
 
-class TkMenu(object):
-
-	WINDOW_EVENTS = ["on_draw", "on_key_press"]
+class TkMenu(scene.TkScene):
 
 	def __init__(self, world):
+		super(TkMenu, self).__init__(world)
 		assert self.menu_items
 		assert self.label
-		self.world = world
 		self.text_batch = pyglet.graphics.Batch()
 		self.cursor = pyglet.text.Label(">", font_name="Times New Roman", font_size=36,
 			x=200, y=300, batch=self.text_batch)
@@ -19,17 +18,6 @@ class TkMenu(object):
 			pyglet.window.key.DOWN		: lambda: self._move_cursor(-1),
 			pyglet.window.key.ENTER		: self._menu_action
 		}
-		self.entry()
-
-	def load(self, window):
-		for event in TkMenu.WINDOW_EVENTS:
-			window.__setattr__(event, self.__getattribute__(event))
-		self.entry()
-
-	def unload(self, window):
-		for event in TkMenu.WINDOW_EVENTS:
-			window.__setattr__(event, lambda *args: False)
-		self.exit()
 
 	def entry(self):
 		pyglet.gl.glClearColor(0, 0, 0, 0)
@@ -46,7 +34,7 @@ class TkMenu(object):
 		self.text_batch.draw()
 
 	def on_key_press(self, button, modifiers):
-		handler = self.key_handlers.get(button, lambda button: None)
+		handler = self.key_handlers.get(button, lambda : None)
 		handler()
 
 	def _generate_text(self):
