@@ -18,20 +18,32 @@ class TkWorld(object):
 			options.append([key, getattr(self, key), *self.minmax[current]])
 		return options
 
-	def set_options(self, new):
-		for key, value, min, max in new:
-			if key not in self.options:
-				self.options.append(key)
-				self.minmax.append([min, max])
-			current = self.options.index(key)
-			if self.minmax[current][0] <= value <= self.minmax[current][1]:
-				setattr(self, key, value)
+	def _set_two_options(self, key, value):
+		if key not in self.options:
+			self.options.append(key)
+			self.minmax.append(None)
+		setattr(self, key, value)
 
-	def transition(self, scene):
+	def _set_four_option(self, key, value, min, max):
+		if key not in self.options:
+			self.options.append(key)
+			self.minmax.append([min, max])
+		current = self.options.index(key)
+		if self.minmax[current][0] <= value <= self.minmax[current][1]:
+			setattr(self, key, value)
+
+	def set_options(self, new):
+		for item in new:
+			if len(item) == 4:
+				self._set_four_option(*item)
+			if len(item) == 2:
+				self._set_two_option(*item)
+
+	def transition(self, scene, *args, **kwargs):
 		if self.current:
 			self.current.unload(self.window)
 		self.current = self.scenes[scene]
-		self.current.load(self.window)
+		self.current.load(self.window, *args, **kwargs)
 
 	def add_scenes(self, new_scenes):
 		self.scenes.update(new_scenes)
@@ -45,6 +57,7 @@ class TkWindow(pyglet.window.Window):
 
 	def __init__(self, *args, **kwargs):
 		super(TkWindow, self).__init__(*args, **kwargs)
+		self.set_visible(False)
 		self.center()
 		self.clear()
 		self.flip()
@@ -67,12 +80,12 @@ class TkScene(object):
 		handler = self.key_handlers.get(button, lambda : None)
 		handler()
 
-	def load(self, window):
+	def load(self, window, *args, **kwargs):
 		for event in TkScene.WINDOW_EVENTS:
 			if hasattr(self, event):
 				window.__setattr__(event, self.__getattribute__(event))
 		if hasattr(self, "entry"):
-			self.entry()
+			self.entry(*args, **kwargs)
 
 	def unload(self, window):
 		for event in TkScene.WINDOW_EVENTS:
@@ -135,8 +148,9 @@ class TkMenu(TkScene):
 
 class TkGridMap(TkScene):
 
-	def __init__(self, world, size, scale, Cell, *cell_args, **cell_kwargs):
+	def __init__(self, world, Cell, size=25, scale=2, *cell_args, **cell_kwargs):
 		super(TkGridMap, self).__init__(world)
+		pyglet.clock.schedule_interval(self.draw, 1 / 60)
 		self.size = size
 		self.scale = scale
 		self.x = self.size // 2
