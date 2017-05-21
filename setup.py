@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='TkEngine',
-	version='1.0.3',
+	version='1.0.4',
 	description='A GUI and Game engine with pyglet.',
 	url='https://github.com/tlebrize/TkEngine',
 	author='tlebrize',
