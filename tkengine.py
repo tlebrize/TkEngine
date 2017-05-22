@@ -14,11 +14,11 @@ class TkWorld(object):
 	def get_options(self):
 		options = []
 		for key in self.options:
-			current = self.options.index(key)			
+			current = self.options.index(key)
 			options.append([key, getattr(self, key), *self.minmax[current]])
 		return options
 
-	def _set_two_options(self, key, value):
+	def _set_two_option(self, key, value):
 		if key not in self.options:
 			self.options.append(key)
 			self.minmax.append(None)
@@ -148,7 +148,7 @@ class TkMenu(TkScene):
 
 class TkGridMap(TkScene):
 
-	def __init__(self, world, Cell, size=25, scale=2, *cell_args, **cell_kwargs):
+	def __init__(self, world, Cell, size=25, scale=2, diagonal=True, *cell_args, **cell_kwargs):
 		super(TkGridMap, self).__init__(world)
 		pyglet.clock.schedule_interval(self.draw, 1 / 60)
 		self.size = size
@@ -161,26 +161,32 @@ class TkGridMap(TkScene):
 			for y in range(1, self.size + 1):
 				line.append(Cell(x, y, self.scale, *cell_args, **cell_kwargs))
 			self.cells.append(line)
+		self.init_cell(diagonal)
+		self.current = self.cells[self.x][self.y]
+		self.current.selected = True
+		self.key_handlers = {
+			pyglet.window.key.RIGHT : lambda : self.move_cursor(1, 0),
+			pyglet.window.key.LEFT : lambda : self.move_cursor(-1, 0),
+			pyglet.window.key.DOWN : lambda : self.move_cursor(0, -1),
+			pyglet.window.key.UP : lambda : self.move_cursor(0, 1),
+		}
+
+	def init_cell(self, diagonal):
 		for x, line in enumerate(self.cells):
 			for y in range(0, self.size):
 				self.cells[x][y].neighbors = {
 					"E": self.cells[(x - 1) % self.size][y],
 					"W": self.cells[(x + 1) % self.size][y],
 					"S": self.cells[x][(y - 1) % self.size],
-					"N": self.cells[x][(y + 1) % self.size],
-					"NE": self.cells[(x - 1) % self.size][(y + 1) % self.size],
-					"NW": self.cells[(x + 1) % self.size][(y + 1) % self.size],
-					"SE": self.cells[(x - 1) % self.size][(y - 1) % self.size],
-					"SW": self.cells[(x + 1) % self.size][(y - 1) % self.size]
+					"N": self.cells[x][(y + 1) % self.size]
 				}
-		self.current = self.cells[self.x][self.y]
-		self.current.selected = True
-		self.key_handlers = {
-			pyglet.window.key.RIGHT : lambda : self.move_cursor(1, 0),
- 			pyglet.window.key.LEFT : lambda : self.move_cursor(-1, 0),
-			pyglet.window.key.DOWN : lambda : self.move_cursor(0, -1),
-			pyglet.window.key.UP : lambda : self.move_cursor(0, 1),
-		}
+				if diagonal:
+					self.cells[x][y].neighbors.update({
+						"NE": self.cells[(x - 1) % self.size][(y + 1) % self.size],
+						"NW": self.cells[(x + 1) % self.size][(y + 1) % self.size],
+						"SE": self.cells[(x - 1) % self.size][(y - 1) % self.size],
+						"SW": self.cells[(x + 1) % self.size][(y - 1) % self.size]
+					})
 
 	def move_cursor(self, x, y):
 		self.current.selected = False
