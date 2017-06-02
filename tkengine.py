@@ -75,6 +75,8 @@ class TkScene(object):
 
 	def __init__(self, world):
 		self.world = world
+		self.keys = pyglet.window.key.KeyStateHandler()
+		self.world.window.push_handlers(self.keys)
 
 	def on_key_press(self, button, modifiers):
 		handler = self.key_handlers.get(button, lambda : None)
